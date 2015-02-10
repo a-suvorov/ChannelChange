@@ -25,9 +25,11 @@ public class FileDialog extends Activity {
     // @see https://code.google.com/p/android-file-dialog/issues/detail?id=3
     // @see http://twigstechtips.blogspot.com.au/2011/11/for-my-app-moustachify-everything-i-was.html
     // This is purely a data storage class for saving information between rotations
-    final static String START_PATH="startpath";
-    final static String CAN_SELECT_DIR="can_select";
-    final static String REQUEST_SAVE="request_save";
+    final static String START_PATH="START_PATH";
+    final static String CAN_SELECT_DIR="CAN_SELECT_DIR";
+
+    final static String RESULT_PATH = "RESULT_PATH";
+    final static String RESULT_FILE = "RESULT_FILE";
 
     private class LastConfiguration {
         public String m_strCurrentPath;

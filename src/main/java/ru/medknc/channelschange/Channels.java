@@ -39,7 +39,7 @@ public class Channels {
      */
     private String end;
 
-    Channels(Context v){
+    Channels(Context v, String path){
         try {
             this.content = this.getFileContent();
 

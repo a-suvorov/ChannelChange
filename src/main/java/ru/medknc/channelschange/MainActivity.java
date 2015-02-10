@@ -72,7 +72,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
         /*
         Read Channel file into the string
          */
-        Channels cannels = new Channels(this);
+        Channels cannels = new Channels(this,"/");
 
 
         /*
@@ -131,6 +131,16 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public synchronized void onActivityResult(final int requestCode, int resultCode, final Intent data) {
+
+        if (resultCode == Activity.RESULT_OK) {
+            String filePath = data.getStringExtra(FileDialog.RESULT_PATH);
+            Toast toast2 = Toast.makeText(this, data.getStringExtra(FileDialog.RESULT_FILE), Toast.LENGTH_LONG);
+            toast2.show();
+
+        }
     }
 
     @Override
