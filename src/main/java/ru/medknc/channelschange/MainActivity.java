@@ -28,6 +28,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,7 +73,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
         /*
         Read Channel file into the string
          */
-        Channels cannels = new Channels(this,"/");
+
 
 
         /*
@@ -136,9 +137,50 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
     public synchronized void onActivityResult(final int requestCode, int resultCode, final Intent data) {
 
         if (resultCode == Activity.RESULT_OK) {
-            String filePath = data.getStringExtra(FileDialog.RESULT_PATH);
-            Toast toast2 = Toast.makeText(this, data.getStringExtra(FileDialog.RESULT_FILE), Toast.LENGTH_LONG);
-            toast2.show();
+            String filePath = data.getStringExtra(FileDialog.RESULT_FILE);
+            if (filePath == "") {
+                Toast toast2 = Toast.makeText(this, "Файл не найден", Toast.LENGTH_LONG);
+                toast2.show();
+            }
+            else {
+                Channels cannels = new Channels(this, filePath);
+                //заполняем таб с аналоговыми каналами
+                Map<Integer,String> atvMap = cannels.getAnalogNameChannels(this);
+                LinearLayout analogTab = (LinearLayout) findViewById(R.id.analogCannels);
+                for (Integer key: atvMap.keySet()){
+                    LinearLayout achannel = new LinearLayout(this);
+
+                    Button achannelName = new Button(this);
+                    achannelName.setText(atvMap.get(key));
+                    achannelName.setGravity(Gravity.CENTER);
+
+                    TextView channelNum = new TextView(this);
+
+                    achannel.addView(achannelName);
+                    analogTab.addView(achannel);
+                }
+                //заполняем таб с цифровыми каналами
+
+                Map<Integer,String> dtvMap = cannels.getDigitalNameChannels(this);
+                //TextView text = (TextView)findViewById(R.id.textview);
+                LinearLayout digitalTab = (LinearLayout) findViewById(R.id.digitalCannels);
+                for (Integer key: dtvMap.keySet()){
+                    //text.setText(text.getText()+key.toString()+dtvMap.get(key));
+                    LinearLayout dchannel = new LinearLayout(this);
+
+                    Button dchannelName = new Button(this);
+                    dchannelName.setText(dtvMap.get(key));
+                    dchannelName.setGravity(Gravity.CENTER);
+
+                    TextView dchannelNum = new TextView(this);
+
+                    dchannel.addView(dchannelName);
+                    digitalTab.addView(dchannel);
+                }
+
+               //text.setText(str);
+              // text.setText(cannels.getContent());
+            }
 
         }
     }

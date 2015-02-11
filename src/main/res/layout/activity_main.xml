@@ -22,7 +22,10 @@
             android:id="@android:id/tabcontent"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-
+            <ScrollView
+                android:id="@+id/analogCannelsScroll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
             <LinearLayout
                 android:id="@+id/analogCannels"
                 android:orientation="vertical"
@@ -71,12 +74,23 @@
                 </LinearLayout>
                 -->
             </LinearLayout>
+            </ScrollView>
+            <ScrollView
+                android:layout_width="match_parent"
+                android:id="@+id/digitalCannelsScroll"
+                android:layout_height="wrap_content">
             <LinearLayout
                 android:id="@+id/digitalCannels"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:scrollbars="vertical"
+                    android:id="@+id/textview"
+                    android:layout_height="match_parent" />
             </LinearLayout>
+            </ScrollView>
         </FrameLayout>
 
     </LinearLayout>
