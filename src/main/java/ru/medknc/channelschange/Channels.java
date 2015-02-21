@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,10 +43,22 @@ public class Channels {
      */
     private String end;
 
+    /*
+    XML hashmap для аналоговых каналов
+     */
+    private Map<Integer,String> arXmlAnalogChannel;
+
+    /*
+    XML hashmap для цифровых каналов
+     */
+    private Map<Integer,String> arXmlDigitalChannel;
+
+
     Channels(Context v, String path){
         try {
             this.content = this.getFileContent(path);
-
+            this.arXmlDigitalChannel = new HashMap<Integer, String>();
+            this.arXmlAnalogChannel = new HashMap<Integer, String>();
             Pattern p = Pattern.compile("([\\s\\S]*)<ATV>([\\s\\S]*)</ATV>([\\s\\S]*)<DTV>([\\s\\S]*)</DTV>([\\s\\S]*)");
             Matcher matchers = p.matcher(this.content);
             matchers.find();
@@ -75,6 +88,7 @@ public class Channels {
         Pattern p = Pattern.compile("(<ITEM>([\\s\\S]*?)<prNum>([\\s\\S]*?)</prNum>([\\s\\S]*?)<vchName>([\\s\\S]*?)</vchName>([\\s\\S]*?)</ITEM>)");
         Matcher matchers = p.matcher(this.atv);
         while(matchers.find()){
+            this.arXmlAnalogChannel.put(Integer.parseInt(matchers.group(3)),matchers.group(1));
             channels.put(Integer.parseInt(matchers.group(3)) ,matchers.group(5));
             //Toast toast1 =  Toast.makeText(v,matchers.group(3),Toast.LENGTH_LONG);
             //toast1.show();
@@ -89,6 +103,7 @@ public class Channels {
         Pattern p = Pattern.compile("(<ITEM>([\\s\\S]*?)<prNum>([\\s\\S]*?)</prNum>([\\s\\S]*?)<vchName>([\\s\\S]*?)</vchName>([\\s\\S]*?)</ITEM>)");
         Matcher matchers = p.matcher(this.dtv);
         while(matchers.find()){
+            this.arXmlDigitalChannel.put(Integer.parseInt(matchers.group(3)),matchers.group(1));
             channels.put(Integer.parseInt(matchers.group(3)),matchers.group(5));
             //Toast toast1 =  Toast.makeText(v,matchers.group(3),Toast.LENGTH_LONG);
             //toast1.show();
@@ -109,7 +124,14 @@ public class Channels {
         return channels;
     }
 
-
+    public int getMaxKeyMap(Set<Integer> keys){
+        //final Integer FIRSTVALUE = 0;
+        int max = 0;
+        for (int key: keys){
+            if ((max == 0) || (key > max)) max = key;
+        }
+        return max;
+    }
 
     private String getFileContent(String path) throws IOException {
         StringBuilder content = new StringBuilder();

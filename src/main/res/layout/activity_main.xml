@@ -24,10 +24,12 @@
             android:layout_height="match_parent">
             <ScrollView
                 android:id="@+id/analogCannelsScroll"
+                android:tag="scroll"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
             <LinearLayout
                 android:id="@+id/analogCannels"
+                android:tag="parent_layout"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:scrollbars="vertical"
@@ -77,10 +79,12 @@
             </ScrollView>
             <ScrollView
                 android:layout_width="match_parent"
+                android:tag="scroll"
                 android:id="@+id/digitalCannelsScroll"
                 android:layout_height="wrap_content">
             <LinearLayout
                 android:id="@+id/digitalCannels"
+                android:tag="parent_layout"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">

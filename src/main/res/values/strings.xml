@@ -3,7 +3,7 @@
 
     <string name="app_name">Channels Change</string>
     <string name="hello_world">Hello world!</string>
-    <string name="action_settings">Настройки</string>
+    <string name="action_save">Сохранить изменения</string>
     <string name="action_numeric">Открыть файл каналов</string>
 
 

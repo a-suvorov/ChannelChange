@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.DragEvent;
@@ -16,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -147,35 +149,109 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
                 //заполняем таб с аналоговыми каналами
                 Map<Integer,String> atvMap = cannels.getAnalogNameChannels(this);
                 LinearLayout analogTab = (LinearLayout) findViewById(R.id.analogCannels);
-                for (Integer key: atvMap.keySet()){
-                    LinearLayout achannel = new LinearLayout(this);
 
-                    Button achannelName = new Button(this);
-                    achannelName.setText(atvMap.get(key));
-                    achannelName.setGravity(Gravity.CENTER);
+                int max = cannels.getMaxKeyMap(atvMap.keySet());
+                //for (Integer key: atvMap.keySet())
+                for (Integer key=1;key <= max;key++)
+                {
+                    if (atvMap.keySet().contains(key)) {
+                        LinearLayout achannel = new LinearLayout(this);
+                        Drawable background = getResources().getDrawable(R.drawable.customborder);
+                        achannel.setBackground(background);
 
-                    TextView channelNum = new TextView(this);
+                        //achannel.setGravity(Gravity.CENTER);
+                        LinearLayout.LayoutParams layoutparams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        layoutparams.height = 100;
+                        layoutparams.setMargins(5, 5, 5, 5);
+                        achannel.setLayoutParams(layoutparams);
 
-                    achannel.addView(achannelName);
-                    analogTab.addView(achannel);
+                    /*
+                    для layout разрешаем принимать объект
+                     */
+                        achannel.setOnDragListener(this);
+                        Button achannelName = new Button(this);
+                        achannelName.setTextSize(12);
+                        achannelName.setLayoutParams(new ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT));
+                        //achannelName.setHeight(300);
+                        //achannelName.setTextSize(12);
+
+                     /*
+                    для кнопки разрешаем перетаскивание
+                     */
+                        achannelName.setOnTouchListener(this);
+
+                        achannelName.setText(atvMap.get(key));
+                        achannelName.setGravity(Gravity.CENTER);
+
+                        TextView achannelNum = new TextView(this);
+                        achannelNum.setTextSize(12);
+                        achannelNum.setText(key.toString() + ": ");
+                        achannelNum.setGravity(1);
+
+                        achannel.addView(achannelNum);
+                        achannel.addView(achannelName);
+                        analogTab.addView(achannel);
+                    }
                 }
                 //заполняем таб с цифровыми каналами
 
                 Map<Integer,String> dtvMap = cannels.getDigitalNameChannels(this);
                 //TextView text = (TextView)findViewById(R.id.textview);
                 LinearLayout digitalTab = (LinearLayout) findViewById(R.id.digitalCannels);
-                for (Integer key: dtvMap.keySet()){
+                digitalTab.setOnDragListener(this);
+                //получаем максимальное значение и пускаем цикл, чтобы незанятые каналы оставались
+                max = cannels.getMaxKeyMap(dtvMap.keySet());
+
+                //for (Integer key: dtvMap.keySet())
+                for (Integer key=1;key <= max;key++)
+                {
                     //text.setText(text.getText()+key.toString()+dtvMap.get(key));
-                    LinearLayout dchannel = new LinearLayout(this);
+                    if (dtvMap.keySet().contains(key)) {
+                        LinearLayout dchannel = new LinearLayout(this);
+                        Drawable background = getResources().getDrawable(R.drawable.customborder);
+                        dchannel.setBackground(background);
 
-                    Button dchannelName = new Button(this);
-                    dchannelName.setText(dtvMap.get(key));
-                    dchannelName.setGravity(Gravity.CENTER);
+                        //область в которой находится кнопка и номер канала
+                        LinearLayout.LayoutParams layoutparams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                        layoutparams.height = 100;
+                        layoutparams.setMargins(5, 5, 5, 5);
+                        dchannel.setLayoutParams(layoutparams);
+                    /*
+                    для layout разрешаем принимать объект
+                     */
+                        dchannel.setOnDragListener(this);
 
-                    TextView dchannelNum = new TextView(this);
 
-                    dchannel.addView(dchannelName);
-                    digitalTab.addView(dchannel);
+                        Button dchannelName = new Button(this);
+                        /*
+                        для кнопки разрешаем перетаскивание
+                         */
+                        //dchannelName.setHeight(300);
+                        dchannelName.setTextSize(12);
+                        dchannelName.setLayoutParams(new ViewGroup.LayoutParams(
+                                ViewGroup.LayoutParams.MATCH_PARENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT));
+
+                        dchannelName.setOnTouchListener(this);
+                        dchannelName.setText(dtvMap.get(key));
+                        dchannelName.setGravity(Gravity.CENTER);
+
+
+                    /*
+                    создаем view с номером канала её перетаскивать нельзя
+                     */
+                        TextView dchannelNum = new TextView(this);
+                        dchannelNum.setTextSize(12);
+                        dchannelNum.setText(key.toString() + ": ");
+                        dchannelNum.setGravity(1);
+
+
+                        dchannel.addView(dchannelNum);
+                        dchannel.addView(dchannelName);
+                        digitalTab.addView(dchannel);
+                    }
                 }
 
                //text.setText(str);
@@ -200,7 +276,27 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
     @Override
     public boolean onDrag(View v, DragEvent event) {
         View view = (View) event.getLocalState();//получаем объект который двигаем
+        LinearLayout dropZoneView = (LinearLayout) v;
+
         switch (event.getAction()) {
+            case DragEvent.ACTION_DRAG_LOCATION:
+                ScrollView mainScrollView = (ScrollView) findViewById(R.id.digitalCannelsScroll);
+
+                int topOfDropZone = dropZoneView.getTop();
+                int bottomOfDropZone = dropZoneView.getBottom();
+
+                int scrollY = mainScrollView.getScrollY();
+                int scrollViewHeight = mainScrollView.getMeasuredHeight();
+
+                //Log.d(LOG_TAG,"location: Scroll Y: "+ scrollY + " Scroll Y+Height: "+(scrollY + scrollViewHeight));
+                //Log.d(LOG_TAG," top: "+ topOfDropZone +" bottom: "+bottomOfDropZone);
+
+                if (bottomOfDropZone > (scrollY + scrollViewHeight - 100))
+                    mainScrollView.smoothScrollBy(0, 30);
+
+                if (topOfDropZone < (scrollY + 100))
+                    mainScrollView.smoothScrollBy(0, -30);
+                break;
             case DragEvent.ACTION_DRAG_ENDED:
                         if (!event.getResult()) {
                             view.setVisibility(View.VISIBLE);
