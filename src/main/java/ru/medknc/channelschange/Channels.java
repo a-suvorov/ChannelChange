@@ -5,7 +5,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +20,11 @@ import java.util.regex.Pattern;
  * Created by User on 08.02.2015.
  */
 public class Channels {
+    /*
+    путь до файла с каналами
+     */
+    String ChannelPath="";
+
     /*
     содержимое XML-файла
      */
@@ -46,19 +53,23 @@ public class Channels {
     /*
     XML hashmap для аналоговых каналов
      */
-    private Map<Integer,String> arXmlAnalogChannel;
-
+    private Map<Integer,Integer> arXmlAnalogChannel; //порядок перестановки
+    private Map<Integer,String> arXmlAnalogChannelContent;
     /*
     XML hashmap для цифровых каналов
      */
-    private Map<Integer,String> arXmlDigitalChannel;
+    private Map<Integer,Integer> arXmlDigitalChannel; //порядок перестановки
+    private Map<Integer,String> arXmlDigitalChannelContent;
 
 
     Channels(Context v, String path){
         try {
+            this.ChannelPath = path;
             this.content = this.getFileContent(path);
-            this.arXmlDigitalChannel = new HashMap<Integer, String>();
-            this.arXmlAnalogChannel = new HashMap<Integer, String>();
+            this.arXmlDigitalChannel = new HashMap<Integer, Integer>();
+            this.arXmlAnalogChannel = new HashMap<Integer, Integer>();
+            this.arXmlDigitalChannelContent = new HashMap<Integer, String>();
+            this.arXmlAnalogChannelContent = new HashMap<Integer, String>();
             Pattern p = Pattern.compile("([\\s\\S]*)<ATV>([\\s\\S]*)</ATV>([\\s\\S]*)<DTV>([\\s\\S]*)</DTV>([\\s\\S]*)");
             Matcher matchers = p.matcher(this.content);
             matchers.find();
@@ -88,7 +99,9 @@ public class Channels {
         Pattern p = Pattern.compile("(<ITEM>([\\s\\S]*?)<prNum>([\\s\\S]*?)</prNum>([\\s\\S]*?)<vchName>([\\s\\S]*?)</vchName>([\\s\\S]*?)</ITEM>)");
         Matcher matchers = p.matcher(this.atv);
         while(matchers.find()){
-            this.arXmlAnalogChannel.put(Integer.parseInt(matchers.group(3)),matchers.group(1));
+            this.arXmlAnalogChannel.put(Integer.parseInt(matchers.group(3)),Integer.parseInt(matchers.group(3)));
+            this.arXmlAnalogChannelContent.put(Integer.parseInt(matchers.group(3)),matchers.group(0));
+
             channels.put(Integer.parseInt(matchers.group(3)) ,matchers.group(5));
             //Toast toast1 =  Toast.makeText(v,matchers.group(3),Toast.LENGTH_LONG);
             //toast1.show();
@@ -103,7 +116,8 @@ public class Channels {
         Pattern p = Pattern.compile("(<ITEM>([\\s\\S]*?)<prNum>([\\s\\S]*?)</prNum>([\\s\\S]*?)<vchName>([\\s\\S]*?)</vchName>([\\s\\S]*?)</ITEM>)");
         Matcher matchers = p.matcher(this.dtv);
         while(matchers.find()){
-            this.arXmlDigitalChannel.put(Integer.parseInt(matchers.group(3)),matchers.group(1));
+            this.arXmlDigitalChannel.put(Integer.parseInt(matchers.group(3)),Integer.parseInt(matchers.group(3)));
+            this.arXmlDigitalChannelContent.put(Integer.parseInt(matchers.group(3)),matchers.group(0));
             channels.put(Integer.parseInt(matchers.group(3)),matchers.group(5));
             //Toast toast1 =  Toast.makeText(v,matchers.group(3),Toast.LENGTH_LONG);
             //toast1.show();
@@ -112,16 +126,16 @@ public class Channels {
         return channels;
     }
 
-    public ArrayList<String> getAnalogXmlChannels(){
-        ArrayList<String> channels =new ArrayList<String>();
-
-        return channels;
+    public void changeAnalogChannels(int fromChannel,int toChannel){
+        int tmpChannel = this.arXmlAnalogChannel.get(toChannel);
+        this.arXmlAnalogChannel.put(toChannel,this.arXmlAnalogChannel.get(fromChannel));
+        this.arXmlAnalogChannel.put(fromChannel,tmpChannel);
     }
 
-    public ArrayList<String> getDigitalXmlChannels(){
-        ArrayList<String> channels =new ArrayList<String>();
-
-        return channels;
+    public void changeDigitalChannels(int fromChannel,int toChannel){
+        int tmpChannel = this.arXmlDigitalChannel.get(toChannel);
+        this.arXmlDigitalChannel.put(toChannel,this.arXmlDigitalChannel.get(fromChannel));
+        this.arXmlDigitalChannel.put(fromChannel,tmpChannel);
     }
 
     public int getMaxKeyMap(Set<Integer> keys){
@@ -144,5 +158,36 @@ public class Channels {
         }
         in.close();
         return content.toString();
+    }
+
+
+    public void save(Context v){
+        /*
+        Делаем замену в соответствующих XML фрагментах
+         */
+        String atv = "\n";
+        for (int i: this.arXmlAnalogChannel.keySet()){
+            atv = atv + this.arXmlAnalogChannelContent.get(i).replace ("<prNum>"+Integer.toString(i) +"</prNum>", "<prNum>"+this.arXmlAnalogChannel.get(i).toString()+"</prNum>")+"\n";
+            this.arXmlAnalogChannel.put(i,i);
+        }
+        String dtv = "\n";
+        for (int i: this.arXmlDigitalChannel.keySet()){
+            dtv = dtv + this.arXmlDigitalChannelContent.get(i).replace ("<prNum>"+Integer.toString(i) +"</prNum>", "<prNum>"+this.arXmlDigitalChannel.get(i).toString()+"</prNum>")+"\n";
+            this.arXmlDigitalChannel.put(i,i);
+        }
+        /*
+        Собираем все в одну строку и перезаписываем файл
+         */
+        String content = this.start + "\n<ATV>" + atv + "</ATV>\n" + "<DTV>" + dtv + "</DTV>\n" + this.end;
+        try {
+            BufferedWriter out = new BufferedWriter(new FileWriter(this.ChannelPath));
+            out.write(content);
+            out.close();
+        }
+        catch (Exception e){
+            Toast toast =  Toast.makeText(v,e.getMessage().toString(),Toast.LENGTH_LONG);
+            toast.show();
+        }
+
     }
 }

@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 public class MainActivity extends Activity implements View.OnTouchListener, View.OnDragListener {
 
     boolean flagDrag;
+    Channels channels;
     final int REQUEST_SAVE = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -122,15 +123,14 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
             Intent intent = new Intent(getBaseContext(), FileDialog.class);
             intent.putExtra(FileDialog.START_PATH, "/sdcard");
 
-            //can user select directories or not
-
             intent.putExtra(FileDialog.CAN_SELECT_DIR, true);
-
-            //alternatively you can set file filter
-            //intent.putExtra(FileDialog.FORMAT_FILTER, new String[] { "png" });
-
             startActivityForResult(intent, REQUEST_SAVE);
 
+        }
+        if (id == R.id.action_save){
+            channels.save(this);
+            Toast toast =  Toast.makeText(this,"Файл успешно сохранен",Toast.LENGTH_LONG);
+            toast.show();
         }
 
         return super.onOptionsItemSelected(item);
@@ -145,17 +145,18 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
                 toast2.show();
             }
             else {
-                Channels cannels = new Channels(this, filePath);
+                this.channels = new Channels(this, filePath);
                 //заполняем таб с аналоговыми каналами
-                Map<Integer,String> atvMap = cannels.getAnalogNameChannels(this);
+                Map<Integer,String> atvMap = this.channels.getAnalogNameChannels(this);
                 LinearLayout analogTab = (LinearLayout) findViewById(R.id.analogCannels);
 
-                int max = cannels.getMaxKeyMap(atvMap.keySet());
+                int max = this.channels.getMaxKeyMap(atvMap.keySet());
                 //for (Integer key: atvMap.keySet())
                 for (Integer key=1;key <= max;key++)
                 {
                     if (atvMap.keySet().contains(key)) {
                         LinearLayout achannel = new LinearLayout(this);
+                        achannel.setTag("alayout");
                         Drawable background = getResources().getDrawable(R.drawable.customborder);
                         achannel.setBackground(background);
 
@@ -187,7 +188,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
 
                         TextView achannelNum = new TextView(this);
                         achannelNum.setTextSize(12);
-                        achannelNum.setText(key.toString() + ": ");
+                        achannelNum.setText(key.toString()/* + ": "*/);
                         achannelNum.setGravity(1);
 
                         achannel.addView(achannelNum);
@@ -197,12 +198,12 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
                 }
                 //заполняем таб с цифровыми каналами
 
-                Map<Integer,String> dtvMap = cannels.getDigitalNameChannels(this);
+                Map<Integer,String> dtvMap = this.channels.getDigitalNameChannels(this);
                 //TextView text = (TextView)findViewById(R.id.textview);
                 LinearLayout digitalTab = (LinearLayout) findViewById(R.id.digitalCannels);
                 digitalTab.setOnDragListener(this);
                 //получаем максимальное значение и пускаем цикл, чтобы незанятые каналы оставались
-                max = cannels.getMaxKeyMap(dtvMap.keySet());
+                max = this.channels.getMaxKeyMap(dtvMap.keySet());
 
                 //for (Integer key: dtvMap.keySet())
                 for (Integer key=1;key <= max;key++)
@@ -210,6 +211,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
                     //text.setText(text.getText()+key.toString()+dtvMap.get(key));
                     if (dtvMap.keySet().contains(key)) {
                         LinearLayout dchannel = new LinearLayout(this);
+                        dchannel.setTag("dlayout");
                         Drawable background = getResources().getDrawable(R.drawable.customborder);
                         dchannel.setBackground(background);
 
@@ -244,7 +246,7 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
                      */
                         TextView dchannelNum = new TextView(this);
                         dchannelNum.setTextSize(12);
-                        dchannelNum.setText(key.toString() + ": ");
+                        dchannelNum.setText(key.toString()/* + ": "*/);
                         dchannelNum.setGravity(1);
 
 
@@ -253,9 +255,6 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
                         digitalTab.addView(dchannel);
                     }
                 }
-
-               //text.setText(str);
-              // text.setText(cannels.getContent());
             }
 
         }
@@ -306,10 +305,35 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
                 if (flagDrag) {
 
                     ViewGroup laypar = (ViewGroup) view.getParent();
+
+                    //Toast toast1 = Toast.makeText(this, Integer.toString(((LinearLayout)v).getChildCount()) , Toast.LENGTH_LONG);
+                    //toast1.show();
+
+
+                    if (v.equals(laypar)) {return false;};  //если источник и приемник один и тот же layout
                     laypar.removeView(view);
 
-                    Toast toast1 = Toast.makeText(this, v.getTag().toString(), Toast.LENGTH_LONG);
-                    toast1.show();
+                    //Toast toast1 = Toast.makeText(this, v.getTag().toString(), Toast.LENGTH_LONG);
+                    //toast1.show();
+                    /*
+                        получаем значение textview откуда переносят и куда.
+                     */
+                    int fromChannel = Integer.parseInt(((TextView)(((LinearLayout)laypar).getChildAt(0))).getText().toString());
+
+                    int toChannel = Integer.parseInt(((TextView)((LinearLayout)v).getChildAt(0)).getText().toString());
+
+                    //Toast toast2 = Toast.makeText(this, Integer.toString(toChannel), Toast.LENGTH_LONG);
+                    //toast2.show();
+
+
+                    if (v.getTag() == "alayout") channels.changeAnalogChannels(fromChannel, toChannel);
+                    if (v.getTag() == "dlayout") channels.changeDigitalChannels(fromChannel, toChannel);
+                    /*
+                    получаем button из того куда перетаскиваем и перемещаем его в laypar
+                     */
+                    Button but = (Button)((LinearLayout) v).getChildAt(1);
+                    ((LinearLayout) v).removeView(but);
+                    laypar.addView(but);
 
                     ((LinearLayout) v).addView(view);
                     ((LinearLayout) v).setGravity(Gravity.CENTER);
@@ -320,7 +344,8 @@ public class MainActivity extends Activity implements View.OnTouchListener, View
 
             case DragEvent.ACTION_DRAG_ENTERED:
                 //Здесь будем проверять есть ли в этом лайауте еще какой нибудь канал
-                if (((LinearLayout)v).getChildCount()>0) flagDrag = false;
+                //if (((LinearLayout)v).getChildCount()>0)
+                if ((((LinearLayout)v).getTag() != "alayout") && (((LinearLayout)v).getTag() != "dlayout")) flagDrag = false;
                     else flagDrag = true;
 
                 break;
